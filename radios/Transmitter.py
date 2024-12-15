@@ -2,6 +2,8 @@ class Transmitter():
     def __init__(self):
         self.TX_Power_W = []
         self.Antenna = []
+        self.Freq = []
+        self.Mod = []
         self.Lat = []
         self.Lon = []
         self.Lat_Lon = []
@@ -14,6 +16,13 @@ class Transmitter():
     
     def set_antenna(self,input_antenna):
         self.Antenna = input_antenna
+
+    def set_freq(self, input_freq):
+        self.Freq = input_freq
+
+    def set_mod(self, modulation):
+        self.Mod = modulation
+        # this may be a lot of switch statements for modulation to bandwidth
         
     def set_lat_lon(self,input_ll):
         self.Lat_Lon = input_ll
