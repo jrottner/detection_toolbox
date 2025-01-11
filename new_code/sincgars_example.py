@@ -3,18 +3,18 @@ import calculations
 # specify simulation information
 
 # first, user information:
-fc = 80e6                               # carrier freq at 80 MHz (Sincgars)
-tx_pos = np.array([33.420732,-82.143516,0])              # lat, lon, altitude (m)
-mod = "SINCGARS"                        # string for modulation type (determines RX SNR)
-tx_antenna = "Isotropic"                # string for antenna type
-tx_pwr = 100                            # tx power, in watts
-tx_pwr_db = 10*np.log10(tx_pwr)         # tx power, in dB
+fc = 80e6                                       # carrier freq at 80 MHz (Sincgars)
+tx_pos = np.array([33.420732,-82.143516,0])     # lat, lon, altitude (m)
+mod = "SINCGARS"                                # string for modulation type (determines RX SNR)
+tx_antenna = "Isotropic"                        # string for antenna type
+tx_pwr = 100                                    # tx power, in watts
+tx_pwr_db = 10*np.log10(tx_pwr)                 # tx power, in dB
 
 # specify friendly information:
-rx_pos = np.array([33.503363,-82.022313, 0])           # lat, lon, altitude (m)
-rx_antenna = "Isotropic"                # string for antenna type
+rx_pos = np.array([33.503363,-82.022313, 0])    # lat, lon, altitude (m)
+rx_antenna = "Isotropic"                        # string for antenna type
 
-rx_snr = calculations.calc_snr(fc,mod)  # Optimal RX SNR (dB) based on frequency and mode (shannon capacity)
+rx_snr = calculations.calc_snr(fc,mod)          # Optimal RX SNR (dB) based on frequency and mode (shannon capacity)
 # everything else is same across link budget
 
 # specify detector information:
