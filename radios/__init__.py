@@ -1,7 +1,7 @@
-import Transmitter
-import Detector_Grid
-
 __all__ = [
     'Transmitter',
     'Detector_Grid'
 ]
+
+from . import Transmitter
+from . import Detector_Grid
