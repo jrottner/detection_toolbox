@@ -38,10 +38,11 @@ else:
 
 # range the enemy detector grid 
 d_snr = 100 # arbitarily high
+d_pos = tx_pos
 for i in range(len(dg_pos[0,:])):
-    d_pos = dg_pos[:,i]
     if d_snr < rx_snr: # if the enemy can hear and intercept
         print(f"Enemy intercept as far away as: {d_pos}")
         break
+    d_pos = dg_pos[:,i]
     # find the snr of the received signal at the supposed enemy location
     d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
