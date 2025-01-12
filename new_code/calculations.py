@@ -45,8 +45,8 @@ def detector_grid(tx_pos, rx_pos):
     npoints = 100
     dg_pos = np.ones((len(tx_pos),npoints))
     aztx_rx, _, distance = geod.inv(tx_pos[0],tx_pos[1], rx_pos[0],rx_pos[1])
-    dg_az = np.abs(altitude_diff) * np.logspace(0.01,2,npoints)
-    dg_distances = distance * np.logspace(0.01,2,npoints)
+    dg_az = np.abs(altitude_diff) * np.logspace(0.001,2,npoints)
+    dg_distances = distance * np.logspace(0.001,2,npoints)
     for i in range(npoints):
         dg_pos[0,i], dg_pos[1,i], _ = geod.fwd(tx_pos[0], 
             tx_pos[1], aztx_rx, dg_distances[i])

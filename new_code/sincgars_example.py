@@ -1,4 +1,9 @@
 import numpy as np
+import os
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+import cartopy.io.shapereader as shpreader
+import matplotlib.pyplot as plt
 import calculations
 # specify simulation information
 
@@ -46,3 +51,59 @@ for i in range(len(dg_pos[0,:])):
     d_pos = dg_pos[:,i]
     # find the snr of the received signal at the supposed enemy location
     d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
+
+# recalculate snr
+dg_snr = np.zeros((len(dg_pos[1,:]), len(dg_pos[0,:])))
+dg_lon = np.zeros(len(dg_pos[0,:]))
+dg_lat = np.zeros(len(dg_pos[1,:]))
+for i in range(len(dg_pos[1,:])):
+    for j in range(len(dg_pos[0,:])):
+        dg_test_pos = np.array([dg_pos[0,i], dg_pos[1, j], 0])
+        dg_lon[j] = dg_pos[1, j]
+        dg_lat[i] = dg_pos[0,i]
+        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, dg_test_pos, rx_antenna)
+
+# plot it
+dir_path = os.path.dirname(os.path.realpath(__file__))
+county_filename = dir_path + '/county_shapes/countyl010g.shp'
+reader = shpreader.Reader(county_filename)
+
+counties = list(reader.geometries())
+
+COUNTIES = cfeature.ShapelyFeature(counties, ccrs.PlateCarree())
+
+plt.figure(figsize=(10, 6))
+ax = plt.axes(projection=ccrs.PlateCarree())
+
+ax.add_feature(cfeature.LAND.with_scale('50m'))
+ax.add_feature(cfeature.OCEAN.with_scale('50m'))
+ax.add_feature(cfeature.LAKES.with_scale('50m'))
+ax.add_feature(COUNTIES, facecolor='none', edgecolor='gray')
+
+ax.coastlines('50m')
+
+ax.set_extent([-81, -83, 32, 34 ], crs=ccrs.PlateCarree())
+ax.coastlines(resolution='50m')
+ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False)
+plt.plot([tx_pos[1], rx_pos[1]], [tx_pos[0], rx_pos[0]],
+         color='blue', linewidth=2, marker='o',
+         transform=ccrs.Geodetic(),
+         )
+
+plt.plot([tx_pos[1], rx_pos[1]], [tx_pos[0], rx_pos[0]],
+         color='gray', linestyle='--',
+         transform=ccrs.PlateCarree(),
+         )
+
+plt.text(tx_pos[1] - 0.1, tx_pos[0] - 0.1, 'TX POS',
+         horizontalalignment='right',
+         transform=ccrs.Geodetic())
+
+plt.text(rx_pos[1] + 0.1, rx_pos[0] + 0.1, 'RX POS',
+         horizontalalignment='left',
+         transform=ccrs.Geodetic())
+
+plt.contourf(dg_lon, dg_lat, dg_snr, 30,
+             transform=ccrs.PlateCarree())
+
+plt.show()
