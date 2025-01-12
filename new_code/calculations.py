@@ -45,11 +45,43 @@ def detector_grid(tx_pos, rx_pos):
     npoints = 100
     dg_pos = np.ones((len(tx_pos),npoints))
     aztx_rx, _, distance = geod.inv(tx_pos[0],tx_pos[1], rx_pos[0],rx_pos[1])
-    dg_az = np.abs(altitude_diff) * np.logspace(0.001,2,npoints)
-    dg_distances = distance * np.logspace(0.001,2,npoints)
+    dg_az = np.abs(altitude_diff) * np.logspace(-1, 1,npoints)
+    dg_distances = distance * np.logspace(-1, 1,npoints)
     for i in range(npoints):
         dg_pos[0,i], dg_pos[1,i], _ = geod.fwd(tx_pos[0], 
             tx_pos[1], aztx_rx, dg_distances[i])
         dg_pos[2,i] = dg_az[i]
 
     return dg_pos
+
+def heatmap(tx_pos, rx_pos):
+    # heatmap: returns a 3-by-100 ndarray of latlon + alt coordinates
+    # tx_pos = [lat,lon,tx_alt]: tx position
+    # rx_pos = [lat,lon,rx_alt]: rx position
+    # first, find distance between two positions
+    geod = Geod(ellps='WGS84')
+    #geod = Geod(ellps='clrk66')
+    distance = geod.line_length([tx_pos[0],rx_pos[0]], [tx_pos[1],rx_pos[1]])
+    altitude_diff = rx_pos[2] - tx_pos[2]
+    # logarthmic scale factor from 0 to 100 (10**2) * distance
+    npoints = 50
+    dg_pos = np.ones((len(tx_pos),npoints))
+    aztx_rx, _, distance = geod.inv(tx_pos[0],tx_pos[1], rx_pos[0],rx_pos[1])
+    if aztx_rx > 90 or aztx_rx < 0:
+        x_az = 180
+    else:
+        x_az = 0
+    dg_az = np.abs(altitude_diff) * np.logspace(-1, 1,npoints)
+
+    # hold azimuth at quadrant-based 0 or 180 degrees and find a maximum x range ("rx + x")
+    dg_distances = distance * np.logspace(-1, 1,npoints)
+    heatmap_pos = np.zeros((npoints,npoints,3)) 
+    heatmap_axis = np.zeros((npoints,2))
+    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(x_az,npoints), dg_distances) 
+    heatmap_pos[0,:,:2] = heatmap_axis # vector of lat/lon pairs along "x-axis"
+    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(np.sign(aztx_rx)*(90),npoints), dg_distances) 
+    heatmap_pos[:,0,:2] = heatmap_axis # vector of lat/lon pairs along "y-axis"
+    for i in range(1,npoints):
+        for j in range(1,npoints):
+            heatmap_pos[i,j,:2] = np.array([heatmap_pos[j,0,0], heatmap_pos[0,i,1]])
+    return heatmap_pos

@@ -53,15 +53,12 @@ for i in range(len(dg_pos[0,:])):
     d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
 
 # recalculate snr
-dg_snr = np.zeros((len(dg_pos[1,:]), len(dg_pos[0,:])))
-dg_lon = np.zeros(len(dg_pos[0,:]))
-dg_lat = np.zeros(len(dg_pos[1,:]))
-for i in range(len(dg_pos[1,:])):
-    for j in range(len(dg_pos[0,:])):
-        dg_test_pos = np.array([dg_pos[0,i], dg_pos[1, j], 0])
-        dg_lon[j] = dg_pos[1, j]
-        dg_lat[i] = dg_pos[0,i]
-        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, dg_test_pos, rx_antenna)
+heatmap_pos = calculations.heatmap(tx_pos, rx_pos)
+dg_snr = np.zeros_like(heatmap_pos[:,:,0])
+
+for i in range(len(dg_snr[1,:])): # lon
+    for j in range(len(dg_snr[0,:])): # lat
+        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna)
 
 # plot it
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -95,15 +92,15 @@ plt.plot([tx_pos[1], rx_pos[1]], [tx_pos[0], rx_pos[0]],
          transform=ccrs.PlateCarree(),
          )
 
-plt.text(tx_pos[1] - 0.1, tx_pos[0] - 0.1, 'TX POS',
+plt.text(tx_pos[1] - 0.01, tx_pos[0] - 0.01, 'TX POS',
          horizontalalignment='right',
          transform=ccrs.Geodetic())
 
-plt.text(rx_pos[1] + 0.1, rx_pos[0] + 0.1, 'RX POS',
+plt.text(rx_pos[1] + 0.01, rx_pos[0] + 0.01, 'RX POS',
          horizontalalignment='left',
          transform=ccrs.Geodetic())
 
-plt.contourf(dg_lon, dg_lat, dg_snr, 30,
+plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30,
              transform=ccrs.PlateCarree())
 
 plt.show()
