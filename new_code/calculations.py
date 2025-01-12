@@ -78,10 +78,11 @@ def heatmap(tx_pos, rx_pos):
     heatmap_pos = np.zeros((npoints,npoints,3)) 
     heatmap_axis = np.zeros((npoints,2))
     heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(x_az,npoints), dg_distances) 
-    heatmap_pos[0,:,:2] = heatmap_axis # vector of lat/lon pairs along "x-axis"
-    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(np.sign(aztx_rx)*(90),npoints), dg_distances) 
-    heatmap_pos[:,0,:2] = heatmap_axis # vector of lat/lon pairs along "y-axis"
+    heatmap_pos[:,0,:2] = heatmap_axis # vector of lat/lon pairs along "x-axis" (y=0)
+    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(np.sign(aztx_rx)*(90),npoints), 0.1*dg_distances) 
+    heatmap_pos[0,:,:2] = heatmap_axis # vector of lat/lon pairs along "y-axis" (x=0)
     for i in range(1,npoints):
         for j in range(1,npoints):
-            heatmap_pos[i,j,:2] = np.array([heatmap_pos[j,0,0], heatmap_pos[0,i,1]])
+            # take lat [0] along y [0,:,~] axis (x=0), take lon [1] along x [:,0,~] axis (y=0)
+            heatmap_pos[i,j,:2] = np.array([heatmap_pos[0,j,0], heatmap_pos[i,0,1]]) #j,i
     return heatmap_pos

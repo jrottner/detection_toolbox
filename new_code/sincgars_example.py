@@ -58,7 +58,7 @@ dg_snr = np.zeros_like(heatmap_pos[:,:,0])
 
 for i in range(len(dg_snr[1,:])): # lon
     for j in range(len(dg_snr[0,:])): # lat
-        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna)
+        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
 
 # plot it
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -69,7 +69,7 @@ counties = list(reader.geometries())
 
 COUNTIES = cfeature.ShapelyFeature(counties, ccrs.PlateCarree())
 
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(6, 6))
 ax = plt.axes(projection=ccrs.PlateCarree())
 
 ax.add_feature(cfeature.LAND.with_scale('50m'))
