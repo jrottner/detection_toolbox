@@ -12,14 +12,14 @@ fc = 80e6                                       # carrier freq at 80 MHz (Sincga
 tx_pos = np.array([33.420732,-82.143516,0])     # lat, lon, altitude (m)
 mod = "SINCGARS"                                # string for modulation type (determines RX SNR)
 tx_antenna = "Isotropic"                        # string for antenna type
-tx_pwr = 100                                    # tx power, in watts
+tx_pwr = 25                                     # tx power, in watts
 tx_pwr_db = 10*np.log10(tx_pwr)                 # tx power, in dB
 
 # specify friendly information:
 rx_pos = np.array([33.503363,-82.022313, 0])    # lat, lon, altitude (m)
 rx_antenna = "Isotropic"                        # string for antenna type
 
-rx_snr = calculations.calc_snr(fc,mod)          # Optimal RX SNR (dB) based on frequency and mode (shannon capacity)
+rx_snr = calculations.calc_snr(fc,mod)          # Optimal lowest RX SNR (dB) based on frequency and mode (shannon capacity)
 # everything else is same across link budget
 
 # specify detector information:
@@ -28,7 +28,8 @@ rx_snr = calculations.calc_snr(fc,mod)          # Optimal RX SNR (dB) based on f
 dg_pos = calculations.detector_grid(tx_pos, rx_pos)
 
 # perform calculations (friendly)
-rx_loss_snr = calculations.path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna)
+# rx_loss_snr = calculations.path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna)
+rx_loss_snr = calculations.hata(fc, tx_pos, rx_pos, 'suburban')
 # this gets you GO/NOGO
 
 print(f"LAT/LON/ALT: {tx_pos}")
@@ -45,12 +46,13 @@ else:
 d_snr = 100 # arbitarily high
 d_pos = tx_pos
 for i in range(len(dg_pos[0,:])):
-    if d_snr < rx_snr: # if the enemy can hear and intercept
-        print(f"Enemy intercept as far away as: {d_pos}")
+    if d_snr < rx_snr: # if the enemy can't hear and intercept
+        print(f"Enemy intercept as far away as: {d_pos}") # print the last calculated snr
         break
     d_pos = dg_pos[:,i]
     # find the snr of the received signal at the supposed enemy location
-    d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
+    # d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
+    d_snr = calculations.hata(fc, tx_pos, d_pos, 'suburban')
 
 # recalculate snr
 heatmap_pos = calculations.heatmap(tx_pos, rx_pos)
@@ -58,8 +60,10 @@ dg_snr = np.zeros_like(heatmap_pos[:,:,0])
 
 for i in range(len(dg_snr[1,:])): # lon
     for j in range(len(dg_snr[0,:])): # lat
-        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
-
+        # dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
+        dg_snr[j,i] = calculations.hata(fc, tx_pos, heatmap_pos[i,j,:], 'suburban')
+dg_snr = dg_snr + tx_pwr_db
+dg_snr = (dg_snr > rx_snr).astype(int)
 # plot it
 dir_path = os.path.dirname(os.path.realpath(__file__))
 county_filename = dir_path + '/county_shapes/countyl010g.shp'
@@ -100,7 +104,8 @@ plt.text(rx_pos[1] + 0.01, rx_pos[0] + 0.01, 'RX POS',
          horizontalalignment='left',
          transform=ccrs.Geodetic())
 
-plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30,
+plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30, #levels=[0.1, 0.9], # 30,
              transform=ccrs.PlateCarree())
 
+plt.title("Point-to-Point Link for VHF SINCGARS SC")
 plt.show()
