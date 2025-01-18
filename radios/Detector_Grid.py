@@ -1,4 +1,4 @@
-class Detector_Grid:
+class Detector_GridClass:
     def __init__(self):
         self.LatLon_Bounds = []
         self.Num_Lat_Points = []
