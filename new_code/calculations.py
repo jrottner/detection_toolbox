@@ -20,13 +20,13 @@ def path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna):
     if tx_antenna == "Isotropic":
         tx_lob = calc_gain(theta)
     elif tx_antenna == "Yagi":
-        tx_lob = calc_gain_yagi(theta,fc)
+        tx_lob = calc_gain_yagi(theta)
     else:
         tx_lob = 1
     if rx_antenna == "Isotropic":
         rx_lob = calc_gain(theta)
     elif rx_antenna == "Yagi":
-        rx_lob = calc_gain_yagi(theta,fc)
+        rx_lob = calc_gain_yagi(theta)
     else:
         rx_lob = 1
     

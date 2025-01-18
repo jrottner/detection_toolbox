@@ -51,6 +51,7 @@ for i in range(len(dg_pos[0,:])):
         break
     d_pos = dg_pos[:,i]
     # find the snr of the received signal at the supposed enemy location
+    # figure out how to add null here
     d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
     #d_snr = calculations.hata(fc, tx_pos, d_pos, 'suburban')
 
