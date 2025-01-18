@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import calculations
+import pandas as pd
+import os
 
+'''
 key_val = 10
 npoints = 100
 x = key_val * np.arange(npoints)
@@ -49,5 +52,24 @@ for i in range(len(heatmap_pos[:,0,0])):
                 color='blue', linewidth=2, marker='o',
                 transform=ccrs.Geodetic(),
                 )
+
+plt.show()
+'''
+dir_path = os.path.dirname(os.path.realpath(__file__))
+df = pd.read_csv(dir_path + '/ant_data/EIRP_Data.csv')
+
+# csv is sorted as theta, phi, power
+# take only theta=0 values
+power1d = df['Power'].head(73)
+power1d = np.array(power1d)
+
+# interp
+npoints = 100
+yagi_pattern = np.zeros((2,npoints))
+yagi_pattern[0,:] = np.linspace(0,2*np.pi,npoints)
+yagi_pattern[1,:] =  1 - 1 * np.sin(yagi_pattern[0,:] - np.pi/2)
+
+fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+ax.plot(yagi_pattern[0,:], yagi_pattern[1,:])
 
 plt.show()

@@ -4,18 +4,29 @@ from pyproj import Geod
 def calc_gain(theta):
     return 1
 
+def calc_gain_yagi(theta):
+    theta = np.deg2rad(theta)
+    npoints = 100
+    yagi_pattern = np.zeros((2,npoints))
+    yagi_pattern[0,:] = np.linspace(0,2*np.pi,npoints)
+    yagi_pattern[1,:] =  10 - 10 * np.sin(yagi_pattern[0,:] - np.pi/2) # approximate cardioid pattern with 10 dB main lobe gain
+    return yagi_pattern[theta,:]
+
 def path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna):
 
     geod = Geod(ellps='WGS84')
-    distance = geod.line_length([tx_pos[0],rx_pos[0]], [tx_pos[1],rx_pos[1]])
-    theta = 0
+    theta, _, distance = geod.inv(tx_pos[0],tx_pos[1], rx_pos[0],rx_pos[1])
 
     if tx_antenna == "Isotropic":
         tx_lob = calc_gain(theta)
+    elif tx_antenna == "Yagi":
+        tx_lob = calc_gain_yagi(theta,fc)
     else:
         tx_lob = 1
     if rx_antenna == "Isotropic":
         rx_lob = calc_gain(theta)
+    elif rx_antenna == "Yagi":
+        rx_lob = calc_gain_yagi(theta,fc)
     else:
         rx_lob = 1
     
@@ -30,6 +41,10 @@ def calc_snr(fc,mod):
         bw = 12.5e3 # sincgars assumptiona
         R = 16e3 # data rate of sincgars; 16 kbps
         # are these ok assumptions? channel capacity, not link capacity.
+    if mod == "SINCGARS FH":
+        # FHSS - ergodic capacity 
+        bw = 0
+        R = 0
     rx_snr = 2**(R/bw) - 1
     # even though this is db, be careful about comparison
     # 3 db fudge factor
