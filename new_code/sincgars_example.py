@@ -28,8 +28,8 @@ rx_snr = calculations.calc_snr(fc,mod)          # Optimal lowest RX SNR (dB) bas
 dg_pos = calculations.detector_grid(tx_pos, rx_pos)
 
 # perform calculations (friendly)
-# rx_loss_snr = calculations.path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna)
-rx_loss_snr = calculations.hata(fc, tx_pos, rx_pos, 'suburban')
+rx_loss_snr = calculations.path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna)
+# rx_loss_snr = calculations.hata(fc, tx_pos, rx_pos, 'suburban')
 # this gets you GO/NOGO
 
 print(f"LAT/LON/ALT: {tx_pos}")
@@ -51,8 +51,8 @@ for i in range(len(dg_pos[0,:])):
         break
     d_pos = dg_pos[:,i]
     # find the snr of the received signal at the supposed enemy location
-    # d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
-    d_snr = calculations.hata(fc, tx_pos, d_pos, 'suburban')
+    d_snr = calculations.path_loss(fc,tx_pos, tx_antenna, d_pos, rx_antenna)
+    #d_snr = calculations.hata(fc, tx_pos, d_pos, 'suburban')
 
 # recalculate snr
 heatmap_pos = calculations.heatmap(tx_pos, rx_pos)
@@ -60,8 +60,8 @@ dg_snr = np.zeros_like(heatmap_pos[:,:,0])
 
 for i in range(len(dg_snr[1,:])): # lon
     for j in range(len(dg_snr[0,:])): # lat
-        # dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
-        dg_snr[j,i] = calculations.hata(fc, tx_pos, heatmap_pos[i,j,:], 'suburban')
+        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
+        # dg_snr[j,i] = calculations.hata(fc, tx_pos, heatmap_pos[i,j,:], 'suburban')
 dg_snr = dg_snr + tx_pwr_db
 dg_snr = (dg_snr > rx_snr).astype(int)
 # plot it
