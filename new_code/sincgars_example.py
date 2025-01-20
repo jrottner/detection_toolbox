@@ -104,8 +104,12 @@ plt.text(rx_pos[1] + 0.01, rx_pos[0] + 0.01, 'RX POS',
          horizontalalignment='left',
          transform=ccrs.Geodetic())
 
-plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30, #levels=[0.1, 0.9], # 30,
+cs = plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30, #levels=[0.1, 0.9], # 30,
              transform=ccrs.PlateCarree())
 
 plt.title("Point-to-Point Link for VHF SINCGARS SC")
+proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_facecolor()[0]) 
+    for pc in cs.collections]
+print(proxy)
+plt.legend([proxy[-1], proxy[0]], ["GO", "NOGO"])
 plt.show()
