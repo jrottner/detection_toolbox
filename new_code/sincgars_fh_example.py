@@ -8,15 +8,15 @@ import calculations
 # specify simulation information
 
 # first, user information:
-fc = 80e6                                       # carrier freq at 80 MHz (Sincgars)
+fc = 80e6                                       # carrier freq at 250 MHz (TSM)
 tx_pos = np.array([42.454447,-71.265828,90])    # lat, lon, altitude (m) - Kathadin Hill at LL
 mod = "SINCGARS FH"                             # string for modulation type (determines RX SNR)
 tx_antenna = "Yagi"                             # string for antenna type
-tx_pwr = 25                                     # tx power, in watts
+tx_pwr = 22                                     # tx power, in watts
 tx_pwr_db = 10*np.log10(tx_pwr)                 # tx power, in dB
 
 # specify friendly information:
-rx_pos = np.array([42.449495,-71.230790, 0])    # lat, lon, altitude (m) - Lexington Battle Green
+rx_pos = np.array([42.360092,-71.094162, 0])    # lat, lon, altitude (m) - MIT Library
 rx_antenna = "Isotropic"                        # string for antenna type
 
 rx_snr = calculations.calc_snr(fc,mod)          # Optimal lowest RX SNR (dB) based on frequency and mode (shannon capacity)
@@ -61,7 +61,7 @@ dg_snr = np.zeros_like(heatmap_pos[:,:,0])
 
 for i in range(len(dg_snr[1,:])): # lon
     for j in range(len(dg_snr[0,:])): # lat
-        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna) #i,j
+        dg_snr[j,i] = calculations.path_loss(fc,tx_pos, tx_antenna, heatmap_pos[i,j,:], rx_antenna, rx_pos) #i,j
         # dg_snr[j,i] = calculations.hata(fc, tx_pos, heatmap_pos[i,j,:], 'suburban')
 dg_snr = dg_snr + tx_pwr_db
 dg_snr = (dg_snr > rx_snr).astype(int)
@@ -84,7 +84,7 @@ ax.add_feature(COUNTIES, facecolor='none', edgecolor='gray')
 
 ax.coastlines('50m')
 
-ax.set_extent([-81, -83, 32, 34 ], crs=ccrs.PlateCarree())
+ax.set_extent([-70, -72, 41, 43 ], crs=ccrs.PlateCarree())
 ax.coastlines(resolution='50m')
 ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False)
 plt.plot([tx_pos[1], rx_pos[1]], [tx_pos[0], rx_pos[0]],
@@ -101,12 +101,12 @@ plt.text(tx_pos[1] - 0.01, tx_pos[0] - 0.01, 'TX POS',
          horizontalalignment='right',
          transform=ccrs.Geodetic())
 
-plt.text(rx_pos[1] + 0.01, rx_pos[0] + 0.01, 'RX POS',
+plt.text(rx_pos[1] + 0.01, rx_pos[0] + 0.1, 'RX POS',
          horizontalalignment='left',
          transform=ccrs.Geodetic())
 
 plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30, #levels=[0.1, 0.9], # 30,
              transform=ccrs.PlateCarree())
 
-plt.title("Point-to-Point Link for VHF SINCGARS SC")
+plt.title("Point-to-Point Link for VHF SINCGARS FH")
 plt.show()
