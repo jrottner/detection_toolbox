@@ -5,14 +5,23 @@ def calc_gain(theta):
     return 1
 
 def calc_gain_yagi(theta):
+    if theta < 0:
+        theta = 360 - theta 
     theta = np.deg2rad(theta)
+    if theta > 2*np.pi:
+        theta = theta - 2*np.pi
+    theta_ind = int(theta*100/(2*np.pi))
     npoints = 100
     yagi_pattern = np.zeros((2,npoints))
     yagi_pattern[0,:] = np.linspace(0,2*np.pi,npoints)
-    yagi_pattern[1,:] =  10 - 10 * np.sin(yagi_pattern[0,:] - np.pi/2) # approximate cardioid pattern with 10 dB main lobe gain
-    return yagi_pattern[theta,:]
+    a = 1
+    b = 0.999
+    # approximate yagi pattern with 10 dB main lobe gain
+    yagi_pattern[1,:] =  10*np.sqrt(np.divide((a**2)*(1-b**2),
+        1-(b**2)*np.cos(yagi_pattern[0,:]))) 
+    return yagi_pattern[1,theta_ind]
 
-def path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna):
+def path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna,fr_pos = np.array([0.0, 0.0, 0.0], dtype='float64')):
 
     geod = Geod(ellps='WGS84')
     theta, _, distance = geod.inv(tx_pos[0],tx_pos[1], rx_pos[0],rx_pos[1])
@@ -20,16 +29,25 @@ def path_loss(fc,tx_pos, tx_antenna, rx_pos, rx_antenna):
     if tx_antenna == "Isotropic":
         tx_lob = calc_gain(theta)
     elif tx_antenna == "Yagi":
+        if fr_pos.any():
+            fr_theta, _, _ =  geod.inv(tx_pos[0],tx_pos[1], fr_pos[0],fr_pos[1])
+            theta=theta-fr_theta
+        else:
+            theta = 0
         tx_lob = calc_gain_yagi(theta)
     else:
         tx_lob = 1
     if rx_antenna == "Isotropic":
         rx_lob = calc_gain(theta)
     elif rx_antenna == "Yagi":
-        rx_lob = calc_gain_yagi(theta)
+        if fr_pos.any():
+            fr_theta, _, _ =  geod.inv(tx_pos[0],tx_pos[1], fr_pos[0],fr_pos[1])
+            theta=theta-fr_theta
+        else:
+            theta = 0
+        rx_lob = calc_gain_yagi(theta+180)
     else:
         rx_lob = 1
-    
     g_l = tx_lob*rx_lob
     wavelength = 3e8/fc
     #return np.multiply(np.exp(slant_ranges_m, 2),4*pi)
@@ -43,8 +61,11 @@ def calc_snr(fc,mod):
         # are these ok assumptions? channel capacity, not link capacity.
     if mod == "SINCGARS FH":
         # FHSS - ergodic capacity 
-        bw = 0
-        R = 0
+        bw = 12.5e3 # sincgars assumptiona
+        R = 16e3 # data rate of sincgars; 16 kbps
+    if mod == "TSM DATA":
+        bw = 15e6
+        R = 16e6 # from trellis data sheet
     rx_snr = 2**(R/bw) - 1
     # even though this is db, be careful about comparison
     # 3 db fudge factor
@@ -95,7 +116,7 @@ def heatmap(tx_pos, rx_pos):
     dg_distances = distance * np.logspace(-1, 2,npoints)
     heatmap_pos = np.zeros((npoints,npoints,3)) 
     heatmap_axis = np.zeros((npoints,2))
-    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(x_az,npoints), dg_distances) 
+    heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(x_az+180,npoints), dg_distances) 
     heatmap_pos[:,0,:2] = heatmap_axis # vector of lat/lon pairs along "x-axis" (y=0)
     heatmap_axis[:,0], heatmap_axis[:,1], _ = geod.fwd(np.tile(tx_pos[0],npoints), np.tile(tx_pos[1],npoints), np.tile(np.sign(aztx_rx)*(90),npoints), 0.25*dg_distances) # fix this one? 
     heatmap_pos[0,:,:2] = heatmap_axis # vector of lat/lon pairs along "y-axis" (x=0)
