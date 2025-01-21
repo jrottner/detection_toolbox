@@ -110,6 +110,5 @@ cs = plt.contourf(heatmap_pos[:,:,1], heatmap_pos[:,:,0], dg_snr, 30, #levels=[0
 plt.title("Point-to-Point Link for VHF SINCGARS SC")
 proxy = [plt.Rectangle((0,0),1,1,fc = pc.get_facecolor()[0]) 
     for pc in cs.collections]
-print(proxy)
 plt.legend([proxy[-1], proxy[0]], ["GO", "NOGO"])
 plt.show()
